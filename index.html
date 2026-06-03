@@ -568,6 +568,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--white);mi
       <option>NORMAL</option><option>CREDITO</option><option>ABONO</option>
       <option>TALLER</option><option>JEFE</option><option>LOCAL</option>
     </select>
+    <button onclick="openTopProductos()" style="padding:6px 12px;background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.4);color:var(--goldb);border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap">📊 Top Productos</button>
   </div>
   <div id="hist-list" style="display:flex;flex-direction:column;gap:6px"></div>
 </div>
@@ -1528,9 +1529,9 @@ const PRODUCTS = [
   {cod:'011',name:'TIRRO VERDE MULOD 1 PULGADA',price:3.5,stock:10},
   {cod:'012',name:'TIRRO NARANJA MULOD 1/4',price:2,stock:10},
   {cod:'013',name:'TIRRO NARANJA MULOD 2 PULGADAS',price:3.5,stock:10},
-  {cod:'014',name:'THINNER MULTI USO GALON',price:8,stock:10},
+  {cod:'014',name:'THINNER MULTI USO GALON',price:10,stock:10},
   {cod:'015',name:'THINNER LIMPIEZA GALON',price:7,stock:10},
-  {cod:'016',name:'THINNER GALON DE TAMBOR',price:7,stock:10},
+  {cod:'016',name:'THINNER GALON DE TAMBOR',price:8,stock:10},
   {cod:'017',name:'REDUCTOR NACIONAL VERDE GALON',price:20,stock:10},
   {cod:'018',name:'THINER 1 LITRO TAMBOR',price:2,stock:10},
   {cod:'019',name:'THINNER DE 1 LITRO SELLADO',price:3,stock:10},
@@ -1571,7 +1572,7 @@ const PRODUCTS = [
   {cod:'054',name:'DISCO FLAP 60',price:2,stock:10},
   {cod:'055',name:'DISCO FLAP 80',price:2,stock:10},
   {cod:'056',name:'PEGA UHU',price:4,stock:10},
-  {cod:'057',name:'THINER ALTA TECNOLOGIA',price:10,stock:10},
+  {cod:'057',name:'THINER ALTA TECNOLOGIA',price:12,stock:10},
   {cod:'058',name:'PEGA EPOXICA MAG POW',price:5,stock:10},
   {cod:'059',name:'1/32 NEGRO DIRECTO',price:5,stock:10},
   {cod:'060',name:'ESPATULA MASILLA MULOD',price:5,stock:10},
@@ -3108,6 +3109,7 @@ function renderHist(){
         ${g.colorista?`<div style="margin-top:4px;font-size:10.5px;color:var(--gold)">🎨 ${g.colorista}</div>`:''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
           <button onclick="downloadInvoice(${gi})" style="padding:5px 12px;background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.4);color:var(--goldb);border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit">⬇ Descargar</button>
+          <button onclick="printThermal(${gi})" style="padding:5px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);color:var(--white);border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit">🖨️ Térmica</button>
           <button onclick="editarFactura(${gi})" style="padding:5px 12px;background:rgba(156,39,176,.18);border:1px solid rgba(206,147,216,.5);color:#ce93d8;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit">✏️ Editar factura</button>
           <button onclick="editarPagoHist(${gi})" style="padding:5px 12px;background:rgba(33,150,243,.15);border:1px solid rgba(33,150,243,.4);color:#90caf9;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit">💳 Editar pago</button>
           <button onclick="abrirDeudaRapida(${gi})" style="padding:5px 12px;background:rgba(255,138,101,.15);border:1px solid rgba(255,138,101,.4);color:#ff8a65;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit">⏳ Te pago ahora</button>
@@ -6284,6 +6286,121 @@ function delRetiroJefe(idx){
 
 
 // ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// IMPRESION TERMICA 80mm
+// ══════════════════════════════════════════════════
+function printThermal(gi){
+  const g=window._histGroups&&window._histGroups[gi];
+  if(!g) return;
+  const ts=tasa();
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Ticket</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Courier New',Courier,monospace;font-size:12px;color:#000;background:#fff;width:72mm;padding:3mm 2mm}
+    .c{text-align:center}.r{text-align:right}.b{font-weight:900}.big{font-size:15px;font-weight:900}
+    .dl{border-top:1px dashed #000;margin:2mm 0}.sl{border-top:1.5px solid #000;margin:2mm 0}
+    table{width:100%;border-collapse:collapse;font-size:11px}
+    td{padding:0.5mm 0;vertical-align:top}
+    .tot td{font-weight:900;font-size:13px;padding-top:1.5mm}
+    .ft{font-size:10px;color:#444;margin-top:3mm;text-align:center}
+    @media print{@page{size:80mm auto;margin:0}body{width:72mm;padding:2mm}}
+  </style></head><body>
+  <div class="c big">CAR PAINT POS</div>
+  <div class="c" style="font-size:10px;margin-top:1mm">Distribuidora de Pinturas</div>
+  <div class="sl"></div>
+  <div style="font-size:11px">
+    <div><b>Fecha:</b> ${g.fecha} ${g.hora}</div>
+    <div><b>Factura#:</b> ${String(g.id).slice(-6)}</div>
+    <div><b>Cliente:</b> ${g.cliente}</div>
+    ${g.tipo&&g.tipo!=="NORMAL"?`<div><b>Tipo:</b> ${g.tipo}</div>`:""}
+    ${g.metodo?`<div><b>Pago:</b> ${g.metodo}</div>`:""}
+    ${g.obs?`<div><b>Obs:</b> ${g.obs}</div>`:""}
+  </div>
+  <div class="dl"></div>
+  <table>
+    <tr><td class="b">Producto</td><td class="r b" style="width:12mm">Cant</td><td class="r b" style="width:16mm">Total</td></tr>
+    ${g.items.map(it=>`<tr>
+      <td>${it.prod}${it.gift?" *OBQ*":""}${it.isPend?" *PEND*":""}</td>
+      <td class="r">${it.frac&&it.frac!=="GALON"?it.frac:""}${it.cant>1?" x"+it.cant:""}</td>
+      <td class="r">${it.gift?"OBSEQ":"$"+it.total.toFixed(2)}</td>
+    </tr>`).join("")}
+  </table>
+  <div class="dl"></div>
+  <table>
+    <tr class="tot"><td class="b">TOTAL USD</td><td class="r b">$${g.total.toFixed(2)}</td></tr>
+    <tr><td style="font-size:11px">Total Bs (x${ts})</td><td class="r" style="font-size:11px">Bs.${(g.total*ts).toFixed(2)}</td></tr>
+  </table>
+  <div class="sl"></div>
+  <div class="ft"><div>Gracias por su compra!</div><div style="font-size:9px;margin-top:1mm">CarPaint POS</div></div>
+  <script>window.onload=function(){window.print();setTimeout(function(){window.close();},800);}<\/script>
+  </body></html>`;
+  const w=window.open("","_blank","width=400,height=600");
+  if(w){w.document.write(html);w.document.close();}
+  else toast("Permite ventanas emergentes para imprimir","err");
+}
+
+// ══════════════════════════════════════════════════
+// TOP PRODUCTOS MAS VENDIDOS
+// ══════════════════════════════════════════════════
+function getTopProductos(limit){
+  limit=limit||15;
+  const counts={};
+  hist.forEach(function(h){
+    if(h.tipo==="ABONO"||!h.prod) return;
+    const key=h.prod.trim().toUpperCase();
+    if(!counts[key]) counts[key]={name:h.prod,unidades:0,ingresos:0,fracs:{}};
+    counts[key].unidades+=(h.cant||1);
+    counts[key].ingresos+=(h.total||0);
+    const fk=h.frac||"GALON";
+    counts[key].fracs[fk]=(counts[key].fracs[fk]||0)+(h.cant||1);
+  });
+  return Object.values(counts).sort(function(a,b){return b.unidades-a.unidades;}).slice(0,limit);
+}
+
+function openTopProductos(){
+  const top=getTopProductos(15);
+  let m=document.getElementById("modal-top-prod");
+  if(!m){
+    m=document.createElement("div");
+    m.id="modal-top-prod";
+    m.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1100;display:flex;align-items:center;justify-content:center";
+    m.innerHTML=`<div style="background:var(--bg2);border:2px solid var(--gold);border-radius:12px;padding:20px;width:min(520px,96vw);max-height:90vh;overflow-y:auto">
+      <div id="top-prod-content"></div>
+      <div style="margin-top:10px;text-align:right">
+        <button onclick="document.getElementById('modal-top-prod').style.display='none'" style="padding:7px 16px;background:var(--bg3);border:1.5px solid var(--border);color:var(--dim);border-radius:7px;cursor:pointer;font-family:inherit">X Cerrar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  if(!top.length){
+    document.getElementById("top-prod-content").innerHTML="<div style='color:var(--dim);padding:12px'>Sin ventas registradas aun.</div>";
+  } else {
+    const mx=top[0].unidades;
+    document.getElementById("top-prod-content").innerHTML=
+      `<div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1.5px;margin-bottom:12px">TOP PRODUCTOS MAS VENDIDOS</div>`+
+      top.map(function(p,i){
+        const pct=Math.round((p.unidades/mx)*100);
+        const tf=Object.entries(p.fracs).sort(function(a,b){return b[1]-a[1];})[0];
+        const col=i===0?"var(--gold)":i<3?"var(--green2)":"var(--blue2)";
+        return `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px">
+            <span style="font-size:13px;color:var(--white);font-weight:${i<3?700:400}">${i+1}. ${p.name}</span>
+            <span style="font-size:11px;color:var(--goldb);font-weight:700">${p.unidades} uds - $${p.ingresos.toFixed(2)}</span>
+          </div>
+          <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${col};border-radius:3px"></div>
+          </div>
+          <div style="font-size:10px;color:var(--dim);margin-top:2px">
+            Fraccion mas vendida: <span style="color:var(--white)">${tf?tf[0]+" ("+tf[1]+" veces)":"--"}</span>
+          </div>
+        </div>`;
+      }).join("");
+  }
+  m.style.display="flex";
+}
+
 // SCAN LIBRETA — TABS IA / MANUAL
 // ══════════════════════════════════════════════════════
 function switchScanTab(tab){
